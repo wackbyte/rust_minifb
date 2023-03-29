@@ -864,14 +864,14 @@ impl Menu {
         imp::Menu::new(name).map(Menu)
     }
 
-    #[inline]
     /// Destroys a menu. Currently not implemented
+    #[inline]
     pub fn destroy_menu(&mut self) {
         //self.0.destroy_menu()
     }
 
-    #[inline]
     /// Adds a sub menu to the current menu
+    #[inline]
     pub fn add_sub_menu(&mut self, name: &str, menu: &Menu) {
         self.0.add_sub_menu(name, &menu.0)
     }
@@ -884,13 +884,12 @@ impl Menu {
         });
     }
 
-    #[inline]
     /// Adds an item to the menu
+    #[inline]
     pub fn add_menu_item(&mut self, item: &MenuItem) -> MenuItemHandle {
         self.0.add_menu_item(item)
     }
 
-    #[inline]
     /// Adds an item to the menu. Notice that you need to call "build" to finish the add
     /// # Examples
     ///
@@ -900,6 +899,7 @@ impl Menu {
     /// menu.add_item("test", 1).shortcut(Key::A, 0).build()
     /// # ;
     /// ```
+    #[inline]
     pub fn add_item(&mut self, name: &str, id: usize) -> MenuItem {
         MenuItem {
             id,
@@ -909,8 +909,8 @@ impl Menu {
         }
     }
 
-    #[inline]
     /// Removes an item from the menu
+    #[inline]
     pub fn remove_item(&mut self, item: &MenuItemHandle) {
         self.0.remove_item(item)
     }
@@ -963,7 +963,7 @@ impl<'a> MenuItem<'a> {
             ..MenuItem::default()
         }
     }
-    #[inline]
+
     /// Sets a shortcut key and modifer (and returns itself)
     ///
     /// # Examples
@@ -974,6 +974,7 @@ impl<'a> MenuItem<'a> {
     /// menu.add_item("test", 1).shortcut(Key::A, 0).build()
     /// # ;
     /// ```
+    #[inline]
     pub fn shortcut(self, key: Key, modifier: usize) -> Self {
         MenuItem {
             key,
@@ -981,7 +982,7 @@ impl<'a> MenuItem<'a> {
             ..self
         }
     }
-    #[inline]
+
     /// Sets item to a separator
     ///
     /// # Examples
@@ -993,13 +994,14 @@ impl<'a> MenuItem<'a> {
     /// # ;
     /// ```
     /// Notice that it's usually easier to just call ```menu.add_separator()``` directly
+    #[inline]
     pub fn separator(self) -> Self {
         MenuItem {
             id: MENU_ID_SEPARATOR,
             ..self
         }
     }
-    #[inline]
+
     /// Sets the menu item disabled/or not
     ///
     /// # Examples
@@ -1010,10 +1012,11 @@ impl<'a> MenuItem<'a> {
     /// menu.add_item("test", 1).enabled(false).build()
     /// # ;
     /// ```
+    #[inline]
     pub fn enabled(self, enabled: bool) -> Self {
         MenuItem { enabled, ..self }
     }
-    #[inline]
+
     /// Must be called to finalize building of a menu item when started with ```menu.add_item()```
     ///
     /// # Examples
@@ -1024,6 +1027,7 @@ impl<'a> MenuItem<'a> {
     /// menu.add_item("test", 1).enabled(false).build()
     /// # ;
     /// ```
+    #[inline]
     pub fn build(&mut self) -> MenuItemHandle {
         let t = self.clone();
         if let Some(ref mut menu) = self.menu {

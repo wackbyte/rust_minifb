@@ -11,7 +11,7 @@ documentation = "https://docs.rs/minifb"
 edition = "2018"
 readme = "README.md"
 
-exclude = ["resources/"]
+exclude = [".github/", "resources/"]
 
 [badges]
 maintenance = { status = "actively-developed" }

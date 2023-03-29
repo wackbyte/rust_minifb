@@ -8,7 +8,6 @@ keywords = ["windowing", "window", "framebuffer"]
 categories = ["rendering"]
 repository = "https://github.com/emoon/rust_minifb"
 documentation = "https://docs.rs/minifb"
-build = "build.rs"
 edition = "2018"
 readme = "README.md"
 

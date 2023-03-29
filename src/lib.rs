@@ -759,21 +759,23 @@ impl Window {
 
     /// Get POSIX menus. Will only return menus on POSIX-like OSes like Linux or BSD
     /// otherwise ```None```
-    #[cfg(any(target_os = "macos", target_os = "windows", target_arch = "wasm32"))]
     pub fn get_posix_menus(&self) -> Option<&Vec<UnixMenu>> {
-        None
-    }
+        #[cfg(any(target_os = "macos", target_os = "windows", target_arch = "wasm32"))]
+        {
+            None
+        }
 
-    #[cfg(any(
-        target_os = "linux",
-        target_os = "freebsd",
-        target_os = "dragonfly",
-        target_os = "netbsd",
-        target_os = "openbsd",
-        target_os = "redox"
-    ))]
-    pub fn get_posix_menus(&self) -> Option<&Vec<UnixMenu>> {
-        self.0.get_posix_menus()
+        #[cfg(any(
+            target_os = "linux",
+            target_os = "freebsd",
+            target_os = "dragonfly",
+            target_os = "netbsd",
+            target_os = "openbsd",
+            target_os = "redox"
+        ))]
+        {
+            self.0.get_posix_menus()
+        }
     }
 
     #[deprecated(

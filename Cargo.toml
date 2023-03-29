@@ -7,7 +7,7 @@ description = "Cross-platform window setup with optional bitmap rendering"
 keywords = ["windowing", "window", "framebuffer"]
 categories = ["rendering"]
 repository = "https://github.com/emoon/rust_minifb"
-documentation = "https://docs.rs/minifb/0.15/minifb"
+documentation = "https://docs.rs/minifb"
 build = "build.rs"
 edition = "2018"
 readme = "README.md"
@@ -57,7 +57,6 @@ x11-dl = { version = "2.19.1", optional = true }
 libc = { version = "0.2.107", optional = true }
 dlib = { version = "0.5", optional = true }
 lazy_static = { version = "1.0", optional = true }
-
 
 [target.x86_64-unknown-redox.dependencies]
 orbclient = "0.3.20"

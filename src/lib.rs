@@ -132,7 +132,7 @@ use self::os::redox as imp;
 use self::os::wasm as imp;
 #[cfg(target_os = "windows")]
 use self::os::windows as imp;
-///
+
 /// Window is used to open up a window. It's possible to optionally display a 32-bit buffer when
 /// the widow is set as non-resizable.
 pub struct Window(imp::Window);
@@ -159,7 +159,6 @@ pub fn clamp<T: PartialOrd>(low: T, value: T, high: T) -> T {
     }
 }
 
-///
 /// On some OS (X11 for example) it's possible a window can resize even if no resize has been set.
 /// This causes some issues depending on how the content of an input buffer should be displayed then it's possible
 /// to set this scaling mode to get a better behavior.
@@ -176,7 +175,6 @@ pub enum ScaleMode {
     UpperLeft,
 }
 
-///
 /// WindowOptions is creation settings for the window. By default the settings are defined for
 /// displayng a 32-bit buffer (no scaling of window is possible)
 #[derive(Clone, Copy, Debug)]
@@ -205,7 +203,6 @@ pub struct WindowOptions {
 }
 
 impl Window {
-    ///
     /// Opens up a new window
     ///
     /// # Examples
@@ -247,7 +244,6 @@ impl Window {
         imp::Window::new(name, width, height, opts).map(Window)
     }
 
-    ///
     /// Allows you to set a new title of the window after creation
     ///
     /// # Examples
@@ -262,7 +258,6 @@ impl Window {
         self.0.set_title(title)
     }
 
-    ///
     /// Sets the icon of the window after creation.
     ///
     /// The file path has to be relative to the current working directory.
@@ -291,7 +286,6 @@ impl Window {
         self.0.set_icon(icon)
     }
 
-    ///
     /// Returns the native handle for a window which is an opaque pointer/handle which
     /// dependens on the current operating system:
     ///
@@ -305,7 +299,6 @@ impl Window {
         self.0.get_window_handle()
     }
 
-    ///
     /// Updates the window with a 32-bit pixel buffer. The encoding for each pixel is `0RGB`:
     /// The upper 8-bits are ignored, the next 8-bits are for the red channel, the next 8-bits
     /// afterwards for the green channel, and the lower 8-bits for the blue channel.
@@ -354,7 +347,6 @@ impl Window {
             .update_with_buffer_stride(buffer, width, height, width)
     }
 
-    ///
     /// Updates the window (this is required to call in order to get keyboard/mouse input, etc)
     ///
     /// Notice that when using this function then `update_with_buffer` should not be called for the same window.
@@ -376,7 +368,6 @@ impl Window {
         self.0.update()
     }
 
-    ///
     /// Checks if the window is still open. A window can be closed by the user (by for example
     /// pressing the close button on the window) It's up to the user to make sure that this is
     /// being checked and take action depending on the state.
@@ -396,7 +387,6 @@ impl Window {
         self.0.is_open()
     }
 
-    ///
     /// Sets the position of the window. This is useful if you have
     /// more than one window and want to align them up on the screen
     ///
@@ -413,7 +403,6 @@ impl Window {
         self.0.set_position(x, y)
     }
 
-    ///
     /// Gets the position of the window. This is useful if you want
     /// to store the position of the window across sessions
     ///
@@ -430,7 +419,6 @@ impl Window {
         self.0.get_position()
     }
 
-    ///
     /// Makes the window the topmost window and makes it stay always on top. This is useful if you
     /// want the window to float above all over windows
     ///
@@ -447,7 +435,6 @@ impl Window {
         self.0.topmost(topmost)
     }
 
-    ///
     /// Sets the background color that is used with update_with_buffer.
     /// In some cases there will be a blank area around the buffer depending on the ScaleMode that has been set.
     /// This color will be used in the in that area.
@@ -470,7 +457,6 @@ impl Window {
             .set_background_color(((r << 16) | (g << 8) | b) as u32);
     }
 
-    ///
     /// Changes whether or not the cursor image should be shown or if the cursor image
     /// should be invisible inside the window
     /// When creating a new window the default is 'false'
@@ -479,7 +465,6 @@ impl Window {
         self.0.set_cursor_visibility(visibility);
     }
 
-    ///
     /// Limits the update rate of polling for new events in order to reduce CPU usage.
     /// The problem of having a tight loop that does something like this
     ///
@@ -508,7 +493,6 @@ impl Window {
         self.0.set_rate(time)
     }
 
-    ///
     /// Returns the current size of the window
     ///
     /// # Examples
@@ -524,7 +508,6 @@ impl Window {
         self.0.get_size()
     }
 
-    ///
     /// Get the current position of the mouse relative to the current window
     /// The coordinate system is as 0, 0 as the upper left corner
     ///
@@ -542,7 +525,6 @@ impl Window {
         self.0.get_mouse_pos(mode)
     }
 
-    ///
     /// Get the current position of the mouse relative to the current window
     /// The coordinate system is as 0, 0 as the upper left corner and ignores
     /// any scaling set to the window.
@@ -563,7 +545,6 @@ impl Window {
         self.0.get_unscaled_mouse_pos(mode)
     }
 
-    ///
     /// Check if a mouse button is down or not
     ///
     /// # Examples
@@ -579,7 +560,6 @@ impl Window {
         self.0.get_mouse_down(button)
     }
 
-    ///
     /// Get the current movement of the scroll wheel.
     /// Scroll wheel can mean different thing depending on the device attach.
     /// For example on Mac with trackpad "scroll wheel" means two finger
@@ -600,7 +580,6 @@ impl Window {
         self.0.get_scroll_wheel()
     }
 
-    ///
     /// Set a different cursor style. This can be used if you have resizing
     /// elements or something like that
     ///
@@ -615,7 +594,6 @@ impl Window {
         self.0.set_cursor_style(cursor)
     }
 
-    ///
     /// Get the current keys that are down.
     ///
     /// # Examples
@@ -634,7 +612,6 @@ impl Window {
         self.0.get_keys()
     }
 
-    ///
     /// Get the current pressed keys. Repeat can be used to control if keys should
     /// be repeated if down or not.
     ///
@@ -657,7 +634,6 @@ impl Window {
         self.0.get_keys_pressed(repeat)
     }
 
-    ///
     /// Get the current released keys.
     ///
     /// # Examples
@@ -676,7 +652,6 @@ impl Window {
         self.0.get_keys_released()
     }
 
-    ///
     /// Check if a single key is down.
     ///
     /// # Examples
@@ -693,7 +668,6 @@ impl Window {
         self.0.is_key_down(key)
     }
 
-    ///
     /// Check if a single key is pressed. KeyRepeat will control if the key should be repeated or
     /// not while being pressed.
     ///
@@ -711,14 +685,12 @@ impl Window {
         self.0.is_key_pressed(key, repeat)
     }
 
-    ///
     /// Check if a single key was released since last call to update.
     #[inline]
     pub fn is_key_released(&self, key: Key) -> bool {
         self.0.is_key_released(key)
     }
 
-    ///
     /// Sets the delay for when a key is being held before it starts being repeated the default
     /// value is 0.25 sec
     ///
@@ -734,7 +706,6 @@ impl Window {
         self.0.set_key_repeat_delay(delay)
     }
 
-    ///
     /// Sets the rate in between when the keys has passed the initial repeat_delay. The default
     /// value is 0.05 sec
     ///
@@ -750,21 +721,18 @@ impl Window {
         self.0.set_key_repeat_rate(rate)
     }
 
-    ///
     /// Returns if this windows is the current active one
     #[inline]
     pub fn is_active(&mut self) -> bool {
         self.0.is_active()
     }
 
-    ///
     /// Set input callback to recive callback on char input
     #[inline]
     pub fn set_input_callback(&mut self, callback: Box<dyn InputCallback>) {
         self.0.set_input_callback(callback)
     }
 
-    ///
     /// This allows adding menus to your windows. As menus behaves a bit diffrently depending on
     /// Operating system here is how it works.
     ///
@@ -783,14 +751,12 @@ impl Window {
         self.0.add_menu(&menu.0)
     }
 
-    ///
     /// Remove a menu that has been added with [#add_menu]
     #[inline]
     pub fn remove_menu(&mut self, handle: MenuHandle) {
         self.0.remove_menu(handle)
     }
 
-    ///
     /// Get POSIX menus. Will only return menus on POSIX-like OSes like Linux or BSD
     /// otherwise ```None```
     #[cfg(any(target_os = "macos", target_os = "windows", target_arch = "wasm32"))]
@@ -818,7 +784,6 @@ impl Window {
         self.get_posix_menus()
     }
 
-    ///
     /// Check if a menu item has been pressed
     #[inline]
     pub fn is_menu_pressed(&mut self) -> Option<usize> {
@@ -839,7 +804,6 @@ pub const MENU_KEY_ALT: usize = 16;
 
 const MENU_ID_SEPARATOR: usize = 0xffffffff;
 
-///
 /// Used on POSIX systems (Linux, FreeBSD, etc) as menus aren't supported in a native way there.
 /// This structure can be used by calling [#get_posix_menus] on Window.
 ///
@@ -857,7 +821,6 @@ pub struct UnixMenu {
     pub item_counter: MenuItemHandle,
 }
 
-///
 /// Used on POSIX systems (Linux, FreeBSD, etc) as menus aren't supported in a native way there.
 /// This structure holds info for each item in a #UnixMenu
 #[derive(Debug, Clone)]
@@ -886,7 +849,6 @@ pub struct MenuItemHandle(pub u64);
 #[doc(hidden)]
 pub struct MenuHandle(pub u64);
 
-///
 /// Menu holds info for menus
 pub struct Menu(imp::Menu);
 
@@ -954,7 +916,6 @@ impl Menu {
     }
 }
 
-///
 /// Holds info about each item in a menu
 #[derive(Debug)]
 pub struct MenuItem<'a> {

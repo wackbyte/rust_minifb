@@ -3,7 +3,6 @@ use std::convert::TryFrom;
 #[cfg(target_os = "windows")]
 use std::{ffi::OsStr, os::windows::prelude::OsStrExt, str::FromStr};
 
-///
 /// Represents a window icon
 ///
 /// Different under Windows, Linux and MacOS

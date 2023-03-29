@@ -1,5 +1,6 @@
+//! The subset of XKB_* key symbols that are used in minifb.
+
 #![allow(missing_docs, non_upper_case_globals, unused_parens, clippy::all)]
-/** The subset of XKB_* key symbols that are used in minifb. */
 
 pub const XKB_KEY_0: u32 = 0x0030;
 pub const XKB_KEY_1: u32 = 0x0031;

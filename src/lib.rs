@@ -2,7 +2,6 @@
 //! easy to open windows (usually native to the running operating system) and can optionally show
 //! a 32-bit buffer. minifb also support keyboard, mouse input and menus on selected operating
 //! systems.
-//!
 #![deny(missing_debug_implementations)]
 
 #[cfg(not(any(target_os = "macos", target_os = "redox", windows)))]
@@ -136,7 +135,6 @@ use self::os::windows as imp;
 ///
 /// Window is used to open up a window. It's possible to optionally display a 32-bit buffer when
 /// the widow is set as non-resizable.
-///
 pub struct Window(imp::Window);
 
 impl fmt::Debug for Window {
@@ -165,7 +163,6 @@ pub fn clamp<T: PartialOrd>(low: T, value: T, high: T) -> T {
 /// On some OS (X11 for example) it's possible a window can resize even if no resize has been set.
 /// This causes some issues depending on how the content of an input buffer should be displayed then it's possible
 /// to set this scaling mode to get a better behavior.
-///
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ScaleMode {
     /// Stretch the buffer in the whole window meaning if your buffer is 256x256 and window is 1024x1024 it will be scaled up 4 times
@@ -182,7 +179,6 @@ pub enum ScaleMode {
 ///
 /// WindowOptions is creation settings for the window. By default the settings are defined for
 /// displayng a 32-bit buffer (no scaling of window is possible)
-///
 #[derive(Clone, Copy, Debug)]
 pub struct WindowOptions {
     /// If the window should be borderless (default: false)
@@ -219,24 +215,28 @@ impl Window {
     /// ```no_run
     /// # use minifb::*;
     /// let mut window = match Window::new("Test", 640, 400, WindowOptions::default()) {
-    ///    Ok(win) => win,
-    ///    Err(err) => {
-    ///        println!("Unable to create window {}", err);
-    ///        return;
-    ///    }
-    ///};
+    ///     Ok(win) => win,
+    ///     Err(err) => {
+    ///         println!("Unable to create window {}", err);
+    ///         return;
+    ///     }
+    /// };
     /// ```
     ///
     /// Open up a window that is resizeable
     ///
     /// ```no_run
     /// # use minifb::*;
-    /// let mut window = Window::new("Test", 640, 400,
+    /// let mut window = Window::new(
+    ///     "Test",
+    ///     640,
+    ///     400,
     ///     WindowOptions {
-    ///        resize: true,
-    ///        ..WindowOptions::default()
-    ///  })
-    ///  .expect("Unable to open Window");
+    ///         resize: true,
+    ///         ..WindowOptions::default()
+    ///     },
+    /// )
+    /// .expect("Unable to open Window");
     /// ```
     pub fn new(name: &str, width: usize, height: usize, opts: WindowOptions) -> Result<Window> {
         if opts.transparency && !opts.borderless {
@@ -258,7 +258,6 @@ impl Window {
     ///
     /// window.set_title("My New Title!");
     /// ```
-    ///
     pub fn set_title(&mut self, title: &str) {
         self.0.set_title(title)
     }
@@ -288,7 +287,6 @@ impl Window {
     /// #[cfg(target_os = "windows")]
     /// window.set_icon(Icon::from_str("src/icon.ico").unwrap());
     /// ```
-    ///
     pub fn set_icon(&mut self, icon: Icon) {
         self.0.set_icon(icon)
     }
@@ -302,7 +300,6 @@ impl Window {
     /// MacOS   NSWindow
     /// X11     XWindow
     /// ```
-    ///
     #[inline]
     pub fn get_window_handle(&self) -> *mut raw::c_void {
         self.0.get_window_handle()
@@ -333,9 +330,17 @@ impl Window {
     ///
     /// let mut buffer: Vec<u32> = vec![azure_blue; buffer_width * buffer_height];
     ///
-    /// let mut window = Window::new("Test", window_width, window_height, WindowOptions::default()).unwrap();
+    /// let mut window = Window::new(
+    ///     "Test",
+    ///     window_width,
+    ///     window_height,
+    ///     WindowOptions::default(),
+    /// )
+    /// .unwrap();
     ///
-    /// window.update_with_buffer(&buffer, buffer_width, buffer_height).unwrap();
+    /// window
+    ///     .update_with_buffer(&buffer, buffer_width, buffer_height)
+    ///     .unwrap();
     /// ```
     #[inline]
     pub fn update_with_buffer(
@@ -403,7 +408,6 @@ impl Window {
     /// // Moves the window to pixel position 20, 20 on the screen
     /// window.set_position(20, 20);
     /// ```
-    ///
     #[inline]
     pub fn set_position(&mut self, x: isize, y: isize) {
         self.0.set_position(x, y)
@@ -419,9 +423,8 @@ impl Window {
     /// # use minifb::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// // Retrieves the current window position
-    /// let (x,y) = window.get_position();
+    /// let (x, y) = window.get_position();
     /// ```
-    ///
     #[inline]
     pub fn get_position(&self) -> (isize, isize) {
         self.0.get_position()
@@ -439,7 +442,6 @@ impl Window {
     /// // Makes the window always on top
     /// window.topmost(true);
     /// ```
-    ///
     #[inline]
     pub fn topmost(&self, topmost: bool) {
         self.0.topmost(topmost)
@@ -459,7 +461,6 @@ impl Window {
     /// // Set background color to bright red
     /// window.set_background_color(255, 0, 0);
     /// ```
-    ///
     #[inline]
     pub fn set_background_color(&mut self, red: usize, green: usize, blue: usize) {
         let r = clamp(0, red, 255);
@@ -486,7 +487,7 @@ impl Window {
     /// # use minifb::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// loop {
-    ///    window.update();
+    ///     window.update();
     /// }
     /// ```
     /// Is that lots of CPU time will be spent calling system functions to check for new events in a tight loop making the CPU time go up.
@@ -502,7 +503,6 @@ impl Window {
     /// // Make sure that at least 4 ms has passed since the last event poll
     /// window.limit_update_rate(Some(std::time::Duration::from_millis(4)));
     /// ```
-    ///
     #[inline]
     pub fn limit_update_rate(&mut self, time: Option<std::time::Duration>) {
         self.0.set_rate(time)
@@ -519,7 +519,6 @@ impl Window {
     /// let size = window.get_size();
     /// println!("width {} height {}", size.0, size.1);
     /// ```
-    ///
     #[inline]
     pub fn get_size(&self) -> (usize, usize) {
         self.0.get_size()
@@ -538,7 +537,6 @@ impl Window {
     ///     println!("x {} y {}", mouse.0, mouse.1);
     /// });
     /// ```
-    ///
     #[inline]
     pub fn get_mouse_pos(&self, mode: MouseMode) -> Option<(f32, f32)> {
         self.0.get_mouse_pos(mode)
@@ -554,11 +552,12 @@ impl Window {
     /// ```no_run
     /// # use minifb::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
-    /// window.get_unscaled_mouse_pos(MouseMode::Clamp).map(|mouse| {
-    ///     println!("x {} y {}", mouse.0, mouse.1);
-    /// });
+    /// window
+    ///     .get_unscaled_mouse_pos(MouseMode::Clamp)
+    ///     .map(|mouse| {
+    ///         println!("x {} y {}", mouse.0, mouse.1);
+    ///     });
     /// ```
-    ///
     #[inline]
     pub fn get_unscaled_mouse_pos(&self, mode: MouseMode) -> Option<(f32, f32)> {
         self.0.get_unscaled_mouse_pos(mode)
@@ -575,7 +574,6 @@ impl Window {
     /// let left_down = window.get_mouse_down(MouseButton::Left);
     /// println!("is left down? {}", left_down)
     /// ```
-    ///
     #[inline]
     pub fn get_mouse_down(&self, button: MouseButton) -> bool {
         self.0.get_mouse_down(button)
@@ -597,8 +595,6 @@ impl Window {
     ///     println!("scrolling - x {} y {}", scroll.0, scroll.1);
     /// });
     /// ```
-    ///
-    ///
     #[inline]
     pub fn get_scroll_wheel(&self) -> Option<(f32, f32)> {
         self.0.get_scroll_wheel()
@@ -615,7 +611,6 @@ impl Window {
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// window.set_cursor_style(CursorStyle::ResizeLeftRight);
     /// ```
-    ///
     pub fn set_cursor_style(&mut self, cursor: CursorStyle) {
         self.0.set_cursor_style(cursor)
     }
@@ -628,13 +623,11 @@ impl Window {
     /// ```no_run
     /// # use minifb::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
-    /// window.get_keys().iter().for_each(|key|
-    ///         match key {
-    ///             Key::W => println!("holding w"),
-    ///             Key::T => println!("holding t"),
-    ///             _ => (),
-    ///         }
-    ///     );
+    /// window.get_keys().iter().for_each(|key| match key {
+    ///     Key::W => println!("holding w"),
+    ///     Key::T => println!("holding t"),
+    ///     _ => (),
+    /// });
     /// ```
     #[inline]
     pub fn get_keys(&self) -> Vec<Key> {
@@ -650,13 +643,14 @@ impl Window {
     /// ```no_run
     /// # use minifb::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
-    /// window.get_keys_pressed(KeyRepeat::No).iter().for_each(|key|
-    ///         match key {
-    ///             Key::W => println!("pressed w"),
-    ///             Key::T => println!("pressed t"),
-    ///             _ => (),
-    ///         }
-    ///     );
+    /// window
+    ///     .get_keys_pressed(KeyRepeat::No)
+    ///     .iter()
+    ///     .for_each(|key| match key {
+    ///         Key::W => println!("pressed w"),
+    ///         Key::T => println!("pressed t"),
+    ///         _ => (),
+    ///     });
     /// ```
     #[inline]
     pub fn get_keys_pressed(&self, repeat: KeyRepeat) -> Vec<Key> {
@@ -671,13 +665,11 @@ impl Window {
     /// ```no_run
     /// # use minifb::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
-    /// window.get_keys_released().iter().for_each(|key|
-    ///         match key {
-    ///             Key::W => println!("released w"),
-    ///             Key::T => println!("released t"),
-    ///             _ => (),
-    ///         }
-    ///     );
+    /// window.get_keys_released().iter().for_each(|key| match key {
+    ///     Key::W => println!("released w"),
+    ///     Key::T => println!("released t"),
+    ///     _ => (),
+    /// });
     /// ```
     #[inline]
     pub fn get_keys_released(&self) -> Vec<Key> {
@@ -696,7 +688,6 @@ impl Window {
     ///     println!("Key A is down");
     /// }
     /// ```
-    ///
     #[inline]
     pub fn is_key_down(&self, key: Key) -> bool {
         self.0.is_key_down(key)
@@ -715,7 +706,6 @@ impl Window {
     ///     println!("Key A is down");
     /// }
     /// ```
-    ///
     #[inline]
     pub fn is_key_pressed(&self, key: Key, repeat: KeyRepeat) -> bool {
         self.0.is_key_pressed(key, repeat)
@@ -723,7 +713,6 @@ impl Window {
 
     ///
     /// Check if a single key was released since last call to update.
-    ///
     #[inline]
     pub fn is_key_released(&self, key: Key) -> bool {
         self.0.is_key_released(key)
@@ -740,7 +729,6 @@ impl Window {
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// window.set_key_repeat_delay(0.5) // 0.5 sec before repeat starts
     /// ```
-    ///
     #[inline]
     pub fn set_key_repeat_delay(&mut self, delay: f32) {
         self.0.set_key_repeat_delay(delay)
@@ -757,7 +745,6 @@ impl Window {
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// window.set_key_repeat_rate(0.01) // 0.01 sec between keys
     /// ```
-    ///
     #[inline]
     pub fn set_key_repeat_rate(&mut self, rate: f32) {
         self.0.set_key_repeat_rate(rate)
@@ -765,7 +752,6 @@ impl Window {
 
     ///
     /// Returns if this windows is the current active one
-    ///
     #[inline]
     pub fn is_active(&mut self) -> bool {
         self.0.is_active()
@@ -773,7 +759,6 @@ impl Window {
 
     ///
     /// Set input callback to recive callback on char input
-    ///
     #[inline]
     pub fn set_input_callback(&mut self, callback: Box<dyn InputCallback>) {
         self.0.set_input_callback(callback)
@@ -793,7 +778,6 @@ impl Window {
     ///   Menus aren't supported as they depend on each WindowManager and is outside of the
     ///   scope for this library to support. Use [get_posix_menus] to get a structure
     /// ```
-    ///
     #[inline]
     pub fn add_menu(&mut self, menu: &Menu) -> MenuHandle {
         self.0.add_menu(&menu.0)
@@ -801,7 +785,6 @@ impl Window {
 
     ///
     /// Remove a menu that has been added with [#add_menu]
-    ///
     #[inline]
     pub fn remove_menu(&mut self, handle: MenuHandle) {
         self.0.remove_menu(handle)
@@ -810,7 +793,6 @@ impl Window {
     ///
     /// Get POSIX menus. Will only return menus on POSIX-like OSes like Linux or BSD
     /// otherwise ```None```
-    ///
     #[cfg(any(target_os = "macos", target_os = "windows", target_arch = "wasm32"))]
     pub fn get_posix_menus(&self) -> Option<&Vec<UnixMenu>> {
         None
@@ -838,7 +820,6 @@ impl Window {
 
     ///
     /// Check if a menu item has been pressed
-    ///
     #[inline]
     pub fn is_menu_pressed(&mut self) -> Option<usize> {
         self.0.is_menu_pressed()
@@ -864,7 +845,6 @@ const MENU_ID_SEPARATOR: usize = 0xffffffff;
 ///
 /// In version 1.0.0, this struct will be renamed to PosixMenu, but it remains UnixMenu for backwards compatibility
 /// reasons.
-///
 #[derive(Debug, Clone)]
 pub struct UnixMenu {
     /// Name of the menu
@@ -880,7 +860,6 @@ pub struct UnixMenu {
 ///
 /// Used on POSIX systems (Linux, FreeBSD, etc) as menus aren't supported in a native way there.
 /// This structure holds info for each item in a #UnixMenu
-///
 #[derive(Debug, Clone)]
 pub struct UnixMenuItem {
     /// Set to a menu if there is a Item is a sub_menu otherwise None
@@ -909,7 +888,6 @@ pub struct MenuHandle(pub u64);
 
 ///
 /// Menu holds info for menus
-///
 pub struct Menu(imp::Menu);
 
 impl fmt::Debug for Menu {
@@ -978,7 +956,6 @@ impl Menu {
 
 ///
 /// Holds info about each item in a menu
-///
 #[derive(Debug)]
 pub struct MenuItem<'a> {
     pub id: usize,

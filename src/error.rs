@@ -2,7 +2,6 @@ use std::error::Error as StdError;
 use std::fmt;
 
 /// Errors that can be returned from various operations
-///
 pub enum Error {
     /// Returned if menu Menu function isn't supported
     MenusNotSupported,

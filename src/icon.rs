@@ -11,8 +11,6 @@ use std::{ffi::OsStr, os::windows::prelude::OsStrExt, str::FromStr};
 /// **Windows**: Icon can be created from a relative path string
 ///
 /// **Linux / X11:** Icon can be created from an ARGB buffer
-///
-///
 #[derive(Clone, Copy, Debug)]
 pub enum Icon {
     Path(*const u16),

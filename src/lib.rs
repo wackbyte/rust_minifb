@@ -9,6 +9,21 @@
 #[macro_use]
 extern crate dlib;
 
+mod buffer_helper;
+mod error;
+mod icon;
+mod key;
+mod key_handler;
+mod mouse_handler;
+mod os;
+mod rate;
+mod window_flags;
+
+pub use self::error::{Error, Result};
+pub use self::icon::Icon;
+pub use self::key::Key;
+pub use raw_window_handle::HasRawWindowHandle;
+
 use std::fmt;
 use std::os::raw;
 
@@ -100,21 +115,6 @@ pub trait InputCallback {
     fn set_key_state(&mut self, _key: Key, _state: bool) {}
 }
 
-mod error;
-pub use self::error::Error;
-pub type Result<T> = std::result::Result<T, Error>;
-pub use icon::Icon;
-pub use raw_window_handle::HasRawWindowHandle;
-
-mod key;
-pub use key::Key;
-mod buffer_helper;
-mod icon;
-mod key_handler;
-mod mouse_handler;
-mod os;
-mod rate;
-mod window_flags;
 
 #[cfg(target_os = "macos")]
 use self::os::macos as imp;

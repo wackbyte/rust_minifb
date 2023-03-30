@@ -47,3 +47,5 @@ impl From<wasm_bindgen::JsValue> for Error {
         )
     }
 }
+
+pub type Result<T> = std::result::Result<T, Error>;

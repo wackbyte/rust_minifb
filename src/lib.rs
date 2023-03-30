@@ -27,94 +27,194 @@ pub use raw_window_handle::HasRawWindowHandle;
 use std::fmt;
 use std::os::raw;
 
-/// Scale will scale the frame buffer and the window that is being sent in when calling the update
-/// function. This is useful if you for example want to display a 320 x 256 window on a screen with
-/// much higher resolution which would result in that the window is very small.
+use bitflags::bitflags;
+
+/// The pixel scale of the framebuffer.
+///
+/// For example, this could be used to display a 320x256 buffer at a large size on a screen with a much higher resolution.
 #[derive(Clone, Copy, Debug)]
 pub enum Scale {
-    /// This mode checks your current screen resolution and will caluclate the largest window size
-    /// that can be used within that limit and resize it. Useful if you have a small buffer to
-    /// display on a high resolution screen.
+    /// Checks your current screen resolution and calculates the largest window size that can be used within that limit.
+    /// Useful if you have a small buffer to display on a high-resolution screen.
     FitScreen,
-    /// 1X scale (which means leave the corrdinates sent into Window::new untouched)
+    /// 1x scale.
+    ///
+    /// Does not do any scaling.
     X1,
-    /// 2X window scale (Example: 320 x 200 -> 640 x 400)
+    /// 2x scale.
+    ///
+    /// Example: 320x200 -> 640x400
     X2,
-    /// 4X window scale (Example: 320 x 200 -> 1280 x 800)
+    /// 4x scale.
+    ///
+    /// Example: 320x200 -> 1280x800
     X4,
-    /// 8X window scale (Example: 320 x 200 -> 2560 x 1600)
+    /// 8x scale.
+    ///
+    /// Example: 320x200 -> 2560x1600
     X8,
-    /// 16X window scale (Example: 320 x 200 -> 5120 x 3200)
+    /// 16x scale.
+    ///
+    /// Example: 320x200 -> 5120x3200
     X16,
-    /// 32 window scale (Example: 320 x 200 -> 10240 x 6400)
+    /// 32x scale.
+    ///
+    /// Example: 320x200 -> 10240x6400
     X32,
 }
 
-/// Used for is_key_pressed and get_keys_pressed() to indicated if repeat of presses is wanted
+/// Defines how the buffer should be displayed if the window is resized.
+///
+/// On some platforms (such as X11), it's possible for a window to be resized even if it's explicitly set as non-resizable.
+/// This could cause issues with how the buffer is displayed.
+/// Thankfully, you may specify a behavior to use.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum ScaleMode {
+    /// Stretches the buffer to fit the entire window.
+    ///
+    /// For example, if your buffer is 256x256 and your window is 1024x1024, it will be scaled up 4 times.
+    Stretch,
+    /// Keeps the correct aspect ratio while fully scaling up on one axis.
+    ///
+    /// The borders will be filled with the window's background color.
+    AspectRatioStretch,
+    /// Places the buffer in the middle of the window without any scaling.
+    ///
+    /// The borders will be filled with the window's background color.
+    ///
+    /// If the window is smaller than the buffer, the center of the buffer will be displayed.
+    Center,
+    /// Same as [`Center`](Self::Center), but places the buffer in the upper-left corner of the window.
+    UpperLeft,
+}
+
+/// Indicates whether key repeat should be used or not.
+///
+/// Used in [`Window::is_key_pressed`] and [`Window::get_keys_pressed`] to decide if keypresses from key repeat should be counted.
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum KeyRepeat {
-    /// Use repeat
+    /// Use key repeat.
     Yes,
-    /// Don't use repeat
+    /// Don't use key repeat.
     No,
 }
 
-/// The various mouse buttons that are availible
+/// The various mouse buttons that are available.
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum MouseButton {
-    /// Left mouse button
+    /// Left mouse button.
     Left,
-    /// Middle mouse button
+    /// Middle mouse button.
     Middle,
-    /// Right mouse button
+    /// Right mouse button.
     Right,
 }
 
-/// The different modes that can be used to decide how mouse coordinates should be handled
+/// Different modes for deciding how mouse coordinates should be handled.
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum MouseMode {
-    /// Return mouse coords from outside of the window (may be negative)
+    /// Returns the mouse coordinates even if they are outside the window.
+    /// Note that they may be negative.
     Pass,
-    /// Clamp the mouse coordinates within the window
+    /// Clamps the mouse coordinates to within the bounds of the window.
     Clamp,
-    /// Discared if the mouse is outside the window
+    /// Discards the mouse coordinates if they are outside the window.
     Discard,
 }
 
-/// Different style of cursors that can be used
+/// Different styles of cursor that can be used.
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum CursorStyle {
-    /// Regular arrow style (this is what the cursor normal looks like)
+    /// A pointer. This is what the cursor normally looks like.
     Arrow,
-    /// Used when indicating insertion (like text field)
+    /// An I-beam, useful for indicating insertion (like a text field).
     Ibeam,
-    /// Cross-hair cursor
+    /// A cross-hair.
     Crosshair,
-    /// Closed hand which useful for dragging things, may use default hand on unsupported OSes.
+    /// A closed hand, useful for indicating that something is being dragged.
+    /// May use the default hand on unsupported platforms.
     ClosedHand,
-    /// Open hand which useful for indicating drangable things, may use default hand on unsupported OSes.
+    /// An open hand, useful for indicating that something is draggable.
+    /// May use the default hand on unsupported platforms.
     OpenHand,
-    /// Rezining left-rigth direction
+    /// Indicates resizing in the horizontal (left-right) direction.
     ResizeLeftRight,
-    /// Rezining up-down direction
+    /// Indicates resizing in the vertical (up-down) direction.
     ResizeUpDown,
-    /// Resize in all directions
+    /// Indicates resizing in all directions.
     ResizeAll,
 }
 
-/// This trait can be implemented and set with ```set_input_callback``` to receive a callback
-/// when there is inputs.
+/// A callback to use when inputs are received.
+///
+/// To use a callback, add it to the window with [`Window::set_input_callback`].
 pub trait InputCallback {
-    /// Called when text is added to the window, or a key is pressed. This passes
-    /// in a unicode character, and therefore does not report control characters.
+    /// Called when text is added to the window.
+    ///
+    /// This only passes in a unicode character.
+    /// Modifiers such as [`Key::LeftShift`] are **not** reported.
     fn add_char(&mut self, uni_char: u32);
 
-    /// Called whenever a key is pressed or released. This reports the state of the
-    /// key in the `state` argument, as well as the translated key in the `key` argument.
-    /// This includes control characters such as `Key::LeftShift`.
+    /// Called whenever a key is pressed or released.
+    ///
+    /// This reports the state of the key (`true` is pressed, `false` is released).
+    /// Modifiers such as [`Key::LeftShift`] are included.
     fn set_key_state(&mut self, _key: Key, _state: bool) {}
 }
 
+/// Creation settings for a [`Window`].
+///
+/// By default, the settings are optimal for displaying a 32-bit buffer (for example: resizing is disabled).
+#[derive(Clone, Copy, Debug)]
+pub struct WindowOptions {
+    /// Whether or not the window should be borderless. (default: `false`)
+    pub borderless: bool,
+    /// Whether or not the window should have a title. (default: `true`)
+    pub title: bool,
+    /// Whether or not it should be possible to resize the window. (default: `false`)
+    pub resize: bool,
+    /// Adjusts the pixel scale of the buffer used with [`Window::update_with_buffer`]. (default: [`X1`](Scale::X1))
+    pub scale: Scale,
+    /// Defines how the buffer used with [`Window::update_with_buffer`] should be stretched if the window is resized. (default: [`Stretch`](ScaleMode::Stretch))
+    pub scale_mode: ScaleMode,
+    /// Whether or not the window should be the topmost window. (default: `false`)
+    pub topmost: bool,
+    /// Whether or not the window is allowed to draw transparent pixels. (default: `false`)
+    ///
+    /// Requires `borderless` to be `true`.
+    ///
+    /// # Platform-specific behavior
+    ///
+    /// Requires `none` to be `true` on Windows.
+    ///
+    /// Currently unimplemented on macOS.
+    // TODO: Currently not implemented on OSX.
+    // TODO: Make it work without none option on windows.
+    pub transparency: bool,
+    /// Required for transparency on Windows. (default: `false`)
+    ///
+    /// Should be mutually exclusive to `resize`, automatically assumes `borderless`.
+    ///
+    /// # Platform-specific behavior
+    ///
+    /// Not supported on macOS.
+    pub none: bool,
+}
+
+impl Default for WindowOptions {
+    fn default() -> WindowOptions {
+        WindowOptions {
+            borderless: false,
+            title: true,
+            resize: false,
+            scale: Scale::X1,
+            scale_mode: ScaleMode::Stretch,
+            topmost: false,
+            transparency: false,
+            none: false,
+        }
+    }
+}
 
 #[cfg(target_os = "macos")]
 use self::os::macos as imp;
@@ -133,8 +233,7 @@ use self::os::wasm as imp;
 #[cfg(target_os = "windows")]
 use self::os::windows as imp;
 
-/// Window is used to open up a window. It's possible to optionally display a 32-bit buffer when
-/// the widow is set as non-resizable.
+/// A window. May be used to display a 32-bit framebuffer.
 pub struct Window(imp::Window);
 
 impl fmt::Debug for Window {
@@ -149,78 +248,25 @@ unsafe impl raw_window_handle::HasRawWindowHandle for Window {
     }
 }
 
-pub fn clamp<T: PartialOrd>(low: T, value: T, high: T) -> T {
-    if value < low {
-        low
-    } else if value > high {
-        high
-    } else {
-        value
-    }
-}
-
-/// On some OS (X11 for example) it's possible a window can resize even if no resize has been set.
-/// This causes some issues depending on how the content of an input buffer should be displayed then it's possible
-/// to set this scaling mode to get a better behavior.
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum ScaleMode {
-    /// Stretch the buffer in the whole window meaning if your buffer is 256x256 and window is 1024x1024 it will be scaled up 4 times
-    Stretch,
-    /// Keep the correct aspect ratio to be displayed while scaling up fully in the other axis. Fill area will be filed with Window::set_bg_color (default 0, 0, 0)
-    AspectRatioStretch,
-    /// Places the buffer in the middle of the window without any scaling. Fills the borders with color set `Window::set_background_color` (default 0, 0, 0)
-    /// If the window is smaller than the buffer the center of the buffer will be displayed
-    Center,
-    /// Same as Center but places the buffer in the upper left corner of the window.
-    UpperLeft,
-}
-
-/// WindowOptions is creation settings for the window. By default the settings are defined for
-/// displayng a 32-bit buffer (no scaling of window is possible)
-#[derive(Clone, Copy, Debug)]
-pub struct WindowOptions {
-    /// If the window should be borderless (default: false)
-    pub borderless: bool,
-    /// If the window should have a title (default: true)
-    pub title: bool,
-    /// If it should be possible to resize the window (default: false)
-    pub resize: bool,
-    /// Scale of the window that used in conjunction with update_with_buffer (default: X1)
-    pub scale: Scale,
-    /// Adjust how the scaling of the buffer used with update_with_buffer should be done.
-    pub scale_mode: ScaleMode,
-    /// Should the window be the topmost window (default: false)
-    pub topmost: bool,
-    /// Specifies whether or not the window is allowed to draw transparent pixels (default: false)
-    /// Requires borderless to be 'true'
-    // TODO: Currently not implemented on OSX.
-    // TODO: Make it work without none option on windows.
-    pub transparency: bool,
-    /// Required for transparency on windows.
-    /// Should be mutually exclusive to resize, automatically assumes borderless.
-    /// Not supported on OSX.
-    pub none: bool,
-}
-
 impl Window {
-    /// Opens up a new window
+    /// Opens up a new window.
     ///
     /// # Examples
     ///
-    /// Open up a window with default settings
+    /// Open up a window with the default settings:
     ///
     /// ```no_run
     /// # use minifb::*;
     /// let mut window = match Window::new("Test", 640, 400, WindowOptions::default()) {
     ///     Ok(win) => win,
     ///     Err(err) => {
-    ///         println!("Unable to create window {}", err);
+    ///         println!("Unable to create window: {}", err);
     ///         return;
     ///     }
     /// };
     /// ```
     ///
-    /// Open up a window that is resizeable
+    /// Open up a window that is resizable:
     ///
     /// ```no_run
     /// # use minifb::*;
@@ -230,10 +276,10 @@ impl Window {
     ///     400,
     ///     WindowOptions {
     ///         resize: true,
-    ///         ..WindowOptions::default()
+    ///         ..Default::default()
     ///     },
     /// )
-    /// .expect("Unable to open Window");
+    /// .expect("Unable to create window");
     /// ```
     pub fn new(name: &str, width: usize, height: usize, opts: WindowOptions) -> Result<Window> {
         if opts.transparency && !opts.borderless {
@@ -244,7 +290,7 @@ impl Window {
         imp::Window::new(name, width, height, opts).map(Window)
     }
 
-    /// Allows you to set a new title of the window after creation
+    /// Sets the title of the window after creation.
     ///
     /// # Examples
     ///
@@ -260,17 +306,23 @@ impl Window {
 
     /// Sets the icon of the window after creation.
     ///
-    /// The file path has to be relative to the current working directory.
+    /// # Platform-specific behavior
     ///
-    /// **Windows:** Has to be a `.ico` file. To also set the icon of the `.exe` file, see the `rc.exe` tool
+    /// The type of data within the icon depends on the current platform:
     ///
-    /// **Linux:**
-    /// - X11: Needs a `u64` buffer with ARGB data
-    /// - Wayland: *not implemented* (use a `.desktop` file)
-    ///
-    /// **MacOS:**
-    ///
-    /// **RedoxOS:** *not implemented*
+    /// - **Windows**:
+    ///   A path to a `.ico` file relative the current working directory.
+    ///   To set the icon of the executable, see the `rc.exe` tool.
+    /// - **macOS**:
+    ///   (not implemented)
+    /// - **X11**:
+    ///   A `u64` buffer of ARGB data.
+    /// - **Wayland**:
+    ///   (not implemented)
+    /// - **Web**:
+    ///   (not implemented)
+    /// - **RedoxOS**:
+    ///   (not implemented)
     ///
     /// # Examples
     ///
@@ -286,40 +338,57 @@ impl Window {
         self.0.set_icon(icon)
     }
 
-    /// Returns the native handle for a window which is an opaque pointer/handle which
-    /// dependens on the current operating system:
+    /// Returns an opaque pointer to the native window handle.
     ///
-    /// ```text
-    /// Windows HWND
-    /// MacOS   NSWindow
-    /// X11     XWindow
-    /// ```
+    /// # Platform-specific behavior
+    ///
+    /// The type of the handle depends on the current platform:
+    ///
+    /// - **Windows**:
+    ///   `HWND`
+    /// - **macOS**:
+    ///   `NSWindow`
+    /// - **X11**:
+    ///   `XWindow`
+    /// - **Wayland**:
+    ///   `WlSurface`
+    /// - **Web**:
+    ///   (none)
+    /// - **RedoxOS**:
+    ///   (none)
     #[inline]
     pub fn get_window_handle(&self) -> *mut raw::c_void {
         self.0.get_window_handle()
     }
 
-    /// Updates the window with a 32-bit pixel buffer. The encoding for each pixel is `0RGB`:
-    /// The upper 8-bits are ignored, the next 8-bits are for the red channel, the next 8-bits
-    /// afterwards for the green channel, and the lower 8-bits for the blue channel.
+    /// Updates the window and draws a 32-bit framebuffer. Receives any new keyboard or mouse input.
     ///
-    /// Notice that the buffer needs to be at least the size of the created window. Also only one of
-    /// `update_with_buffer` or `update` should be called for updating a single window.
+    /// The encoding for each pixel is `ARGB`:
+    ///
+    /// - the upper 8 bits (25-32) are for the alpha channel,
+    /// - the next 8 bits (17-24) are for the red channel,
+    /// - the next 8 bits (9-16) are for the green channel,
+    /// - and the lower 8-bits (1-8) are for the blue channel.
+    ///
+    /// The buffer should be at least the size of the window.
+    ///
+    /// **Notice:** Only **one** of this function or [`update`](Self::update) should be used.
     ///
     /// # Examples
     ///
     /// ```no_run
     /// # use minifb::*;
-    /// fn from_u8_rgb(r: u8, g: u8, b: u8) -> u32 {
+    /// fn rgb(r: u8, g: u8, b: u8) -> u32 {
     ///     let (r, g, b) = (r as u32, g as u32, b as u32);
     ///     (r << 16) | (g << 8) | b
     /// }
+    ///
     /// let window_width = 600;
     /// let window_height = 400;
     /// let buffer_width = 600;
     /// let buffer_height = 400;
     ///
-    /// let azure_blue = from_u8_rgb(0, 127, 255);
+    /// let azure_blue = rgb(0, 127, 255);
     ///
     /// let mut buffer: Vec<u32> = vec![azure_blue; buffer_width * buffer_height];
     ///
@@ -347,10 +416,9 @@ impl Window {
             .update_with_buffer_stride(buffer, width, height, width)
     }
 
-    /// Updates the window (this is required to call in order to get keyboard/mouse input, etc)
+    /// Updates the window. Receives any new keyboard or mouse input.
     ///
-    /// Notice that when using this function then `update_with_buffer` should not be called for the same window.
-    /// Only one of the functions should be used.
+    /// **Notice:** Only **one** of this function or [`update_with_buffer`](Self::update_with_buffer) should be used.
     ///
     /// # Examples
     ///
@@ -368,10 +436,10 @@ impl Window {
         self.0.update()
     }
 
-    /// Checks if the window is still open. A window can be closed by the user (by for example
-    /// pressing the close button on the window) It's up to the user to make sure that this is
-    /// being checked and take action depending on the state.
+    /// Checks if the window is still open.
     ///
+    /// A window can be closed by the user, usually by pressing the close button.
+    /// It's up to the program to check whether the window is still open or not.
     ///
     /// # Examples
     ///
@@ -379,8 +447,11 @@ impl Window {
     /// # use minifb::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// while window.is_open() {
-    ///     // Update window
+    ///     // Update the window here!
+    ///     window.update();
     /// }
+    /// // The window was closed.
+    /// println!("Goodbye!");
     /// ```
     #[inline]
     pub fn is_open(&self) -> bool {
@@ -390,12 +461,16 @@ impl Window {
     /// Sets the position of the window. This is useful if you have
     /// more than one window and want to align them up on the screen
     ///
+    /// Sets the position of the window.
+    ///
+    /// This is useful if you have more than one window and want to line them up on the screen.
+    ///
     /// # Examples
     ///
     /// ```no_run
     /// # use minifb::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
-    /// // Moves the window to pixel position 20, 20 on the screen
+    /// // Moves the window to the pixel position (20, 20) on the screen.
     /// window.set_position(20, 20);
     /// ```
     #[inline]
@@ -403,20 +478,36 @@ impl Window {
         self.0.set_position(x, y)
     }
 
-    /// Gets the position of the window. This is useful if you want
-    /// to store the position of the window across sessions
+    /// Returns the position of the window.
+    ///
+    /// This is useful if you want the window's position to persist across sessions.
     ///
     /// # Examples
     ///
     /// ```no_run
     /// # use minifb::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
-    /// // Retrieves the current window position
+    /// // Retrieves the window's current position.
     /// let (x, y) = window.get_position();
     /// ```
     #[inline]
     pub fn get_position(&self) -> (isize, isize) {
         self.0.get_position()
+    }
+
+    /// Returns the current size of the window.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use minifb::*;
+    /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
+    /// // Retrieves the window's current size.
+    /// let (width, height) = window.get_size();
+    /// ```
+    #[inline]
+    pub fn get_size(&self) -> (usize, usize) {
+        self.0.get_size()
     }
 
     /// Makes the window the topmost window and makes it stay always on top. This is useful if you
@@ -427,7 +518,7 @@ impl Window {
     /// ```no_run
     /// # use minifb::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
-    /// // Makes the window always on top
+    /// // Makes the window always be on top.
     /// window.topmost(true);
     /// ```
     #[inline]
@@ -445,7 +536,7 @@ impl Window {
     /// ```no_run
     /// # use minifb::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
-    /// // Set background color to bright red
+    /// // Sets the background color to bright red.
     /// window.set_background_color(255, 0, 0);
     /// ```
     #[inline]
@@ -460,6 +551,15 @@ impl Window {
     /// Changes whether or not the cursor image should be shown or if the cursor image
     /// should be invisible inside the window
     /// When creating a new window the default is 'false'
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use minifb::*;
+    /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
+    /// // Makes the cursor invisible.
+    /// window.set_cursor_visibility(false);
+    /// ```
     #[inline]
     pub fn set_cursor_visibility(&mut self, visibility: bool) {
         self.0.set_cursor_visibility(visibility);
@@ -485,7 +585,7 @@ impl Window {
     /// ```no_run
     /// # use minifb::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
-    /// // Make sure that at least 4 ms has passed since the last event poll
+    /// // Make sure that at least 4 milliseconds have passed since the last event poll.
     /// window.limit_update_rate(Some(std::time::Duration::from_millis(4)));
     /// ```
     #[inline]
@@ -493,29 +593,16 @@ impl Window {
         self.0.set_rate(time)
     }
 
-    /// Returns the current size of the window
+    /// Returns the mouse position relative to the window.
+    ///
+    /// The coordinate system's origin is at the upper-left corner of the window.
     ///
     /// # Examples
     ///
     /// ```no_run
     /// # use minifb::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
-    /// let size = window.get_size();
-    /// println!("width {} height {}", size.0, size.1);
-    /// ```
-    #[inline]
-    pub fn get_size(&self) -> (usize, usize) {
-        self.0.get_size()
-    }
-
-    /// Get the current position of the mouse relative to the current window
-    /// The coordinate system is as 0, 0 as the upper left corner
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # use minifb::*;
-    /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
+    /// // Retrieves the current mouse position, clamped within the window.
     /// window.get_mouse_pos(MouseMode::Clamp).map(|mouse| {
     ///     println!("x {} y {}", mouse.0, mouse.1);
     /// });
@@ -525,15 +612,16 @@ impl Window {
         self.0.get_mouse_pos(mode)
     }
 
-    /// Get the current position of the mouse relative to the current window
-    /// The coordinate system is as 0, 0 as the upper left corner and ignores
-    /// any scaling set to the window.
+    /// Returns the mouse position relative to the window, ignoring any scaling.
+    ///
+    /// The coordinate system's origin is at the upper-left corner of the window.
     ///
     /// # Examples
     ///
     /// ```no_run
     /// # use minifb::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
+    /// // Retrieves the current mouse position, clamped within the window, not accounting for any scaling.
     /// window
     ///     .get_unscaled_mouse_pos(MouseMode::Clamp)
     ///     .map(|mouse| {
@@ -545,13 +633,14 @@ impl Window {
         self.0.get_unscaled_mouse_pos(mode)
     }
 
-    /// Check if a mouse button is down or not
+    /// Checks if a mouse button is down.
     ///
     /// # Examples
     ///
     /// ```no_run
     /// # use minifb::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
+    /// // Checks if the left mouse button is down.
     /// let left_down = window.get_mouse_down(MouseButton::Left);
     /// println!("is left down? {}", left_down)
     /// ```
@@ -560,11 +649,13 @@ impl Window {
         self.0.get_mouse_down(button)
     }
 
-    /// Get the current movement of the scroll wheel.
-    /// Scroll wheel can mean different thing depending on the device attach.
-    /// For example on Mac with trackpad "scroll wheel" means two finger
-    /// swiping up/down (y axis) and to the sides (x-axis)
-    /// When using a mouse this assumes the scroll wheel which often is only y direction.
+    /// Returns the movement of the scroll wheel.
+    ///
+    /// Scrolling can mean different things depending on the device being used.
+    ///
+    /// For example, on a Mac with a trackpad, the "scroll wheel" is two-finger swiping up-down (y-axis) or side-to-side (x-axis).
+    ///
+    /// When using a mouse, however, scrolling is often only on the y-axis.
     ///
     /// # Examples
     ///
@@ -580,8 +671,9 @@ impl Window {
         self.0.get_scroll_wheel()
     }
 
-    /// Set a different cursor style. This can be used if you have resizing
-    /// elements or something like that
+    /// Changes the cursor style.
+    ///
+    /// See [`CursorStyle`] for every available style.
     ///
     /// # Examples
     ///
@@ -594,7 +686,7 @@ impl Window {
         self.0.set_cursor_style(cursor)
     }
 
-    /// Get the current keys that are down.
+    /// Returns the keys that are currently down.
     ///
     /// # Examples
     ///
@@ -612,8 +704,9 @@ impl Window {
         self.0.get_keys()
     }
 
-    /// Get the current pressed keys. Repeat can be used to control if keys should
-    /// be repeated if down or not.
+    /// Returns the currently pressed keys.
+    ///
+    /// [`KeyRepeat`] controls whether or not repeated keys should be counted as pressed.
     ///
     /// # Examples
     ///
@@ -634,7 +727,7 @@ impl Window {
         self.0.get_keys_pressed(repeat)
     }
 
-    /// Get the current released keys.
+    /// Returns the currently released keys.
     ///
     /// # Examples
     ///
@@ -652,7 +745,7 @@ impl Window {
         self.0.get_keys_released()
     }
 
-    /// Check if a single key is down.
+    /// Checks if a single key is down.
     ///
     /// # Examples
     ///
@@ -668,8 +761,9 @@ impl Window {
         self.0.is_key_down(key)
     }
 
-    /// Check if a single key is pressed. KeyRepeat will control if the key should be repeated or
-    /// not while being pressed.
+    /// Checks if a single key was pressed.
+    ///
+    /// [`KeyRepeat`] controls whether or not repeated keys should be counted as pressed.
     ///
     /// # Examples
     ///
@@ -685,80 +779,84 @@ impl Window {
         self.0.is_key_pressed(key, repeat)
     }
 
-    /// Check if a single key was released since last call to update.
+    /// Checks if a single key was released.
     #[inline]
     pub fn is_key_released(&self, key: Key) -> bool {
         self.0.is_key_released(key)
     }
 
-    /// Sets the delay for when a key is being held before it starts being repeated the default
-    /// value is 0.25 sec
+    /// Sets the delay (in seconds) to wait before keys are repeated.
+    ///
+    /// The default value is `0.25` seconds.
     ///
     /// # Examples
     ///
     /// ```no_run
     /// # use minifb::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
-    /// window.set_key_repeat_delay(0.5) // 0.5 sec before repeat starts
+    /// window.set_key_repeat_delay(0.5) // 0.5 seconds before repeat starts
     /// ```
     #[inline]
     pub fn set_key_repeat_delay(&mut self, delay: f32) {
         self.0.set_key_repeat_delay(delay)
     }
 
-    /// Sets the rate in between when the keys has passed the initial repeat_delay. The default
-    /// value is 0.05 sec
+    /// Sets the rate (in seconds) at which keys will repeat after the initial delay.
+    ///
+    /// The default value is `0.05` seconds.
     ///
     /// # Examples
     ///
     /// ```no_run
     /// # use minifb::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
-    /// window.set_key_repeat_rate(0.01) // 0.01 sec between keys
+    /// window.set_key_repeat_rate(0.01) // 0.01 seconds between keys
     /// ```
     #[inline]
     pub fn set_key_repeat_rate(&mut self, rate: f32) {
         self.0.set_key_repeat_rate(rate)
     }
 
-    /// Returns if this windows is the current active one
+    /// Returns `true` if this window is currently the active one.
     #[inline]
     pub fn is_active(&mut self) -> bool {
         self.0.is_active()
     }
 
-    /// Set input callback to recive callback on char input
+    /// Sets the input callback to use when keyboard input is received.
     #[inline]
     pub fn set_input_callback(&mut self, callback: Box<dyn InputCallback>) {
         self.0.set_input_callback(callback)
     }
 
-    /// This allows adding menus to your windows. As menus behaves a bit diffrently depending on
-    /// Operating system here is how it works.
+    /// Adds a menu to the window.
     ///
-    /// ```text
-    /// Windows:
-    ///   Each window has their own menu and shortcuts are active depending on active window.
-    /// Mac:
-    ///   As Mac uses one menu for the whole program the menu will change depending
-    ///   on which window you have active.
-    /// Linux/BSD/etc:
-    ///   Menus aren't supported as they depend on each WindowManager and is outside of the
-    ///   scope for this library to support. Use [get_posix_menus] to get a structure
-    /// ```
+    /// # Platform-specific behavior
+    ///
+    /// Menus may behave differently depending on the platform:
+    ///
+    /// - **Windows**:
+    ///   Each window has their own menu and shortcuts are active depending on the active window.
+    /// - **macOS**:
+    ///   As macOS uses one menu for the entire program, the menu will change depending on which window is active.
+    /// - **Linux/BSD/etc**:
+    ///   Menus aren't supported as they depend on different window managers and are outside the scope of this library.
+    ///   Use [`get_posix_menus`](Self::get_posix_menus) for an alternative.
     #[inline]
     pub fn add_menu(&mut self, menu: &Menu) -> MenuHandle {
         self.0.add_menu(&menu.0)
     }
 
-    /// Remove a menu that has been added with [#add_menu]
+    /// Removes a menu added with [`add_menu`](Self::add_menu).
     #[inline]
     pub fn remove_menu(&mut self, handle: MenuHandle) {
         self.0.remove_menu(handle)
     }
 
-    /// Get POSIX menus. Will only return menus on POSIX-like OSes like Linux or BSD
-    /// otherwise ```None```
+    /// Returns the window's POSIX menus.
+    ///
+    /// Will only return menus on POSIX-like systems (Linux, BSD, etc).
+    /// On other platforms, `None` will be returned.
     pub fn get_posix_menus(&self) -> Option<&Vec<PosixMenu>> {
         #[cfg(any(target_os = "macos", target_os = "windows", target_arch = "wasm32"))]
         {
@@ -778,7 +876,7 @@ impl Window {
         }
     }
 
-    /// Use [`get_posix_menus`](Self::get_posix_menus) instead.
+    /// Deprecated. Use [`get_posix_menus`](Self::get_posix_menus) instead.
     #[deprecated(
         since = "0.17.0",
         note = "`get_unix_menus` will be removed in 1.0.0, use `get_posix_menus` instead"
@@ -788,86 +886,110 @@ impl Window {
         self.get_posix_menus()
     }
 
-    /// Check if a menu item has been pressed
+    /// Checks if a menu item has been pressed.
     #[inline]
     pub fn is_menu_pressed(&mut self) -> Option<usize> {
         self.0.is_menu_pressed()
     }
 }
 
-/// Command key on Mac OS
-pub const MENU_KEY_COMMAND: usize = 1;
-/// Windows key on Windows
-pub const MENU_KEY_WIN: usize = 2;
-/// Shift key
-pub const MENU_KEY_SHIFT: usize = 4;
-/// Control key
-pub const MENU_KEY_CTRL: usize = 8;
-/// Alt key
-pub const MENU_KEY_ALT: usize = 16;
+bitflags! {
+    #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+    pub struct Modifiers: u32 {
+        /// The shift key.
+        const SHIFT = 0b0001;
+        /// The control key.
+        const CTRL = 0b0010;
+        /// The alt key.
+        const ALT = 0b0100;
+        /// The logo key.
+        const LOGO = 0b1000;
+    }
+}
+
+impl Modifiers {
+    pub const fn shift(self) -> bool {
+        self.intersects(Self::SHIFT)
+    }
+
+    pub const fn ctrl(self) -> bool {
+        self.intersects(Self::CTRL)
+    }
+
+    pub const fn alt(self) -> bool {
+        self.intersects(Self::ALT)
+    }
+
+    pub const fn logo(self) -> bool {
+        self.intersects(Self::LOGO)
+    }
+}
 
 const MENU_ID_SEPARATOR: usize = 0xffffffff;
 
-/// Use [`PosixMenu`] instead.
+/// Deprecated. Use [`PosixMenu`] instead.
 #[deprecated(
     since = "0.25.0",
     note = "`UnixMenuItem` will be removed in 1.0.0, use `PosixMenu` instead"
 )]
 pub type UnixMenu = PosixMenu;
 
-/// Use [`PosixMenuItem`] instead.
+/// Deprecated. Use [`PosixMenuItem`] instead.
 #[deprecated(
     since = "0.25.0",
     note = "`UnixMenuItem` will be removed in 1.0.0, use `PosixMenuItem` instead"
 )]
 pub type UnixMenuItem = PosixMenuItem;
 
-/// Used on POSIX systems (Linux, FreeBSD, etc) as menus aren't supported in a native way there.
-/// This structure can be used by calling [#get_posix_menus] on Window.
+/// Used on POSIX-like systems (Linux, BSD, etc) as menus aren't natively supported there.
 ///
-/// In version 1.0.0, this struct will be renamed to PosixMenu, but it remains UnixMenu for backwards compatibility
-/// reasons.
+/// See [`Window::get_posix_menus`].
 #[derive(Debug, Clone)]
 pub struct PosixMenu {
-    /// Name of the menu
+    /// The name of the menu.
     pub name: String,
-    /// All items of the menu.
+    /// A list of items within the menu.
     pub items: Vec<PosixMenuItem>,
+
     #[doc(hidden)]
     pub handle: MenuHandle,
     #[doc(hidden)]
     pub item_counter: MenuItemHandle,
 }
 
-/// Used on POSIX systems (Linux, FreeBSD, etc) as menus aren't supported in a native way there.
-/// This structure holds info for each item in a #UnixMenu
+/// Used on POSIX-like systems (Linux, BSD, etc) as menus aren't natively supported there.
+///
+/// Holds information about an item in a [`PosixMenu`].
 #[derive(Debug, Clone)]
 pub struct PosixMenuItem {
-    /// Set to a menu if there is a Item is a sub_menu otherwise None
+    /// The item may hold a sub menu.
     pub sub_menu: Option<Box<PosixMenu>>,
-    /// Handle of the MenuItem
-    pub handle: MenuItemHandle,
-    /// Id of the item (set by the user from the outside and should be reported back when pressed)
+    /// The ID of the item.
+    ///
+    /// Set by the user and reported back when the item is pressed.
     pub id: usize,
-    /// Name of the item
+    /// The name of the item.
     pub label: String,
-    /// Set to true if enabled otherwise false
+    /// Set to `true` if the items is enabled, `false` otherwise.
     pub enabled: bool,
-    /// Shortcut key
+    /// The shortcut key.
     pub key: Key,
-    /// Modifier for the key (Shift, Ctrl, etc)
-    pub modifier: usize,
-}
+    /// The modifiers for the shortcut key.
+    pub modifiers: Modifiers,
 
-#[derive(Debug, Copy, Clone)]
-#[doc(hidden)]
-pub struct MenuItemHandle(pub u64);
+    #[doc(hidden)]
+    pub handle: MenuItemHandle,
+}
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 #[doc(hidden)]
 pub struct MenuHandle(pub u64);
 
-/// Menu holds info for menus
+#[derive(Debug, Copy, Clone)]
+#[doc(hidden)]
+pub struct MenuItemHandle(pub u64);
+
+/// Holds information about a menu.
 pub struct Menu(imp::Menu);
 
 impl fmt::Debug for Menu {
@@ -877,24 +999,24 @@ impl fmt::Debug for Menu {
 }
 
 impl Menu {
-    /// Create a new menu. Returns error if failed
+    /// Creates a new menu. Returns an error upon failure.
     pub fn new(name: &str) -> Result<Menu> {
         imp::Menu::new(name).map(Menu)
     }
 
-    /// Destroys a menu. Currently not implemented
+    /// Destroys the menu. Currently unimplemented.
     #[inline]
     pub fn destroy_menu(&mut self) {
         //self.0.destroy_menu()
     }
 
-    /// Adds a sub menu to the current menu
+    /// Adds a sub menu to the menu.
     #[inline]
     pub fn add_sub_menu(&mut self, name: &str, menu: &Menu) {
         self.0.add_sub_menu(name, &menu.0)
     }
 
-    /// Adds a menu separator
+    /// Adds a separator to the menu.
     pub fn add_separator(&mut self) {
         self.add_menu_item(&MenuItem {
             id: MENU_ID_SEPARATOR,
@@ -902,13 +1024,16 @@ impl Menu {
         });
     }
 
-    /// Adds an item to the menu
+    /// Adds an item to the menu.
     #[inline]
     pub fn add_menu_item(&mut self, item: &MenuItem) -> MenuItemHandle {
         self.0.add_menu_item(item)
     }
 
-    /// Adds an item to the menu. Notice that you need to call "build" to finish the add
+    /// Begins building an item to be added to the menu.
+    ///
+    /// [`MenuItem::build`] must be called to add the finished item.
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -927,21 +1052,22 @@ impl Menu {
         }
     }
 
-    /// Removes an item from the menu
+    /// Removes an item from the menu.
     #[inline]
     pub fn remove_item(&mut self, item: &MenuItemHandle) {
         self.0.remove_item(item)
     }
 }
 
-/// Holds info about each item in a menu
+/// Holds information about an item in a [`Menu`].
 #[derive(Debug)]
 pub struct MenuItem<'a> {
     pub id: usize,
     pub label: String,
     pub enabled: bool,
     pub key: Key,
-    pub modifier: usize,
+    pub modifiers: Modifiers,
+
     #[doc(hidden)]
     pub menu: Option<&'a mut Menu>,
 }
@@ -950,10 +1076,10 @@ impl<'a> Default for MenuItem<'a> {
     fn default() -> Self {
         MenuItem {
             id: MENU_ID_SEPARATOR,
-            label: "".to_owned(),
+            label: String::new(),
             enabled: true,
             key: Key::Unknown,
-            modifier: 0,
+            modifiers: Modifiers::empty(),
             menu: None,
         }
     }
@@ -966,14 +1092,14 @@ impl<'a> Clone for MenuItem<'a> {
             label: self.label.clone(),
             enabled: self.enabled,
             key: self.key,
-            modifier: self.modifier,
+            modifiers: self.modifiers,
             menu: None,
         }
     }
 }
 
 impl<'a> MenuItem<'a> {
-    /// Creates a new menu item
+    /// Creates a new menu item.
     pub fn new(name: &str, id: usize) -> MenuItem {
         MenuItem {
             id,
@@ -982,7 +1108,7 @@ impl<'a> MenuItem<'a> {
         }
     }
 
-    /// Sets a shortcut key and modifer (and returns itself)
+    /// Sets a shortcut key and modifier.
     ///
     /// # Examples
     ///
@@ -993,15 +1119,15 @@ impl<'a> MenuItem<'a> {
     /// # ;
     /// ```
     #[inline]
-    pub fn shortcut(self, key: Key, modifier: usize) -> Self {
+    pub fn shortcut(self, key: Key, modifiers: Modifiers) -> Self {
         MenuItem {
             key,
-            modifier,
+            modifiers,
             ..self
         }
     }
 
-    /// Sets item to a separator
+    /// Makes the menu item a separator.
     ///
     /// # Examples
     ///
@@ -1011,7 +1137,8 @@ impl<'a> MenuItem<'a> {
     /// menu.add_item("", 0).separator().build()
     /// # ;
     /// ```
-    /// Notice that it's usually easier to just call ```menu.add_separator()``` directly
+    ///
+    /// Note that it is often more convenient to instead call [`Menu::add_separator`].
     #[inline]
     pub fn separator(self) -> Self {
         MenuItem {
@@ -1020,7 +1147,7 @@ impl<'a> MenuItem<'a> {
         }
     }
 
-    /// Sets the menu item disabled/or not
+    /// Makes the menu item appear enabled or disabled.
     ///
     /// # Examples
     ///
@@ -1035,7 +1162,7 @@ impl<'a> MenuItem<'a> {
         MenuItem { enabled, ..self }
     }
 
-    /// Must be called to finalize building of a menu item when started with ```menu.add_item()```
+    /// Must be called to add a menu item started with [`Menu::add_item`].
     ///
     /// # Examples
     ///
@@ -1056,19 +1183,12 @@ impl<'a> MenuItem<'a> {
     }
 }
 
-// Impl for WindowOptions
-
-impl Default for WindowOptions {
-    fn default() -> WindowOptions {
-        WindowOptions {
-            borderless: false,
-            transparency: false,
-            title: true,
-            resize: false,
-            scale: Scale::X1,
-            scale_mode: ScaleMode::Stretch,
-            topmost: false,
-            none: false,
-        }
+pub fn clamp<T: PartialOrd>(low: T, value: T, high: T) -> T {
+    if value < low {
+        low
+    } else if value > high {
+        high
+    } else {
+        value
     }
 }

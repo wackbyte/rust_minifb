@@ -417,7 +417,7 @@ impl Menu {
             label: item.label.clone(),
             enabled: item.enabled,
             key: item.key,
-            modifier: item.modifier,
+            modifiers: item.modifiers,
         });
         item_handle
     }

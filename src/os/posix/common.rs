@@ -1,3 +1,4 @@
+use crate::Modifiers;
 use crate::Result;
 use crate::{Key, MenuHandle, MenuItem, MenuItemHandle, PosixMenu, PosixMenuItem};
 
@@ -26,7 +27,7 @@ impl Menu {
             id: 0,
             enabled: true,
             key: Key::Unknown,
-            modifier: 0,
+            modifiers: Modifiers::empty(),
         });
     }
 
@@ -45,7 +46,7 @@ impl Menu {
             label: item.label.clone(),
             enabled: item.enabled,
             key: item.key,
-            modifier: item.modifier,
+            modifiers: item.modifiers,
         });
         item_handle
     }

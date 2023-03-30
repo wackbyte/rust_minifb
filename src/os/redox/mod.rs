@@ -8,6 +8,7 @@ use crate::icon::Icon;
 use crate::key_handler::KeyHandler;
 use crate::mouse_handler;
 use crate::InputCallback;
+use crate::Modifiers;
 use crate::Result;
 use crate::{CursorStyle, MouseButton, MouseMode};
 use crate::{Key, KeyRepeat};
@@ -437,7 +438,7 @@ impl Menu {
             id: 0,
             enabled: true,
             key: Key::Unknown,
-            modifier: 0,
+            modifiers: Modifiers::empty(),
         });
     }
 
@@ -456,7 +457,7 @@ impl Menu {
             label: item.label.clone(),
             enabled: item.enabled,
             key: item.key,
-            modifier: item.modifier,
+            modifiers: item.modifiers,
         });
         item_handle
     }

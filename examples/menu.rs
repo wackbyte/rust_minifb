@@ -1,5 +1,4 @@
-use minifb::MENU_KEY_CTRL;
-use minifb::{InputCallback, Key, Menu, Scale, Window, WindowOptions};
+use minifb::{InputCallback, Key, Menu, Modifiers, Scale, Window, WindowOptions};
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 360;
@@ -40,26 +39,26 @@ fn main() {
     let mut sub = Menu::new("Select Color").unwrap();
 
     sub.add_item("Color 0", COLOR_0_ID)
-        .shortcut(Key::F1, 0)
+        .shortcut(Key::F1, Modifiers::empty())
         .build();
     sub.add_item("Color 1", COLOR_1_ID)
-        .shortcut(Key::F2, 0)
+        .shortcut(Key::F2, Modifiers::empty())
         .build();
     sub.add_item("Color 2", COLOR_2_ID)
-        .shortcut(Key::F7, 0)
+        .shortcut(Key::F7, Modifiers::empty())
         .build();
 
     menu.add_item("Menu Test", MENU_TEST_ID)
-        .shortcut(Key::W, MENU_KEY_CTRL)
+        .shortcut(Key::W, Modifiers::CTRL)
         .build();
 
     menu.add_separator();
 
     menu.add_item("Other Menu", OTHER_MENU_ID)
-        .shortcut(Key::W, MENU_KEY_CTRL)
+        .shortcut(Key::W, Modifiers::CTRL)
         .build();
     menu.add_item("Remove Menu", CLOSE_MENU_ID)
-        .shortcut(Key::R, 0)
+        .shortcut(Key::R, Modifiers::empty())
         .build();
 
     menu.add_sub_menu("Sub Test", &sub);

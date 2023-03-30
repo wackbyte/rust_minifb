@@ -204,7 +204,7 @@ extern "C" {
         name: *const c_char,
         enabled: bool,
         key: u32,
-        modifier: u32,
+        modifiers: u32,
     ) -> u64;
     fn mfb_remove_menu_item(menu: *mut c_void, item_handle: u64);
 }
@@ -755,7 +755,7 @@ impl Menu {
                 item_name.as_ptr(),
                 item.enabled,
                 conv_key,
-                item.modifier as u32,
+                item.modifiers.bits(),
             ))
         }
     }

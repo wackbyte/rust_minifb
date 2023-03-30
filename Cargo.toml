@@ -23,6 +23,7 @@ png = "0.17"
 cc = "1.0"
 
 [dependencies]
+bitflags = "2.0"
 raw-window-handle = "0.4"
 
 [target.'cfg(windows)'.dependencies.winapi]

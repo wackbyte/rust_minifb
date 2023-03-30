@@ -11,7 +11,6 @@ use crate::{CursorStyle, MenuHandle, MenuItem, MenuItemHandle};
 use crate::{
     InputCallback, Key, KeyRepeat, MouseButton, MouseMode, Scale, ScaleMode, WindowOptions,
 };
-use crate::{MENU_KEY_ALT, MENU_KEY_CTRL, MENU_KEY_SHIFT, MENU_KEY_WIN};
 
 use crate::buffer_helper;
 use crate::mouse_handler;
@@ -1158,32 +1157,32 @@ impl Menu {
             Key::Key8 => (0x38, "8"),
             Key::Key9 => (0x39, "9"),
 
-            Key::A => (0x41, "a"),
-            Key::B => (0x42, "b"),
-            Key::C => (0x43, "c"),
-            Key::D => (0x44, "d"),
-            Key::E => (0x45, "e"),
-            Key::F => (0x46, "f"),
-            Key::G => (0x47, "g"),
-            Key::H => (0x48, "h"),
-            Key::I => (0x49, "i"),
-            Key::J => (0x4a, "j"),
-            Key::K => (0x4b, "k"),
-            Key::L => (0x4c, "l"),
-            Key::M => (0x4d, "m"),
-            Key::N => (0x4e, "n"),
-            Key::O => (0x4f, "o"),
-            Key::P => (0x50, "p"),
-            Key::Q => (0x51, "q"),
-            Key::R => (0x52, "r"),
-            Key::S => (0x53, "s"),
-            Key::T => (0x54, "t"),
-            Key::U => (0x55, "u"),
-            Key::V => (0x56, "v"),
-            Key::W => (0x57, "w"),
-            Key::X => (0x58, "x"),
-            Key::Y => (0x59, "y"),
-            Key::Z => (0x5a, "z"),
+            Key::A => (0x41, "A"),
+            Key::B => (0x42, "B"),
+            Key::C => (0x43, "C"),
+            Key::D => (0x44, "D"),
+            Key::E => (0x45, "E"),
+            Key::F => (0x46, "F"),
+            Key::G => (0x47, "G"),
+            Key::H => (0x48, "H"),
+            Key::I => (0x49, "I"),
+            Key::J => (0x4a, "J"),
+            Key::K => (0x4b, "K"),
+            Key::L => (0x4c, "L"),
+            Key::M => (0x4d, "M"),
+            Key::N => (0x4e, "N"),
+            Key::O => (0x4f, "O"),
+            Key::P => (0x50, "P"),
+            Key::Q => (0x51, "Q"),
+            Key::R => (0x52, "R"),
+            Key::S => (0x53, "S"),
+            Key::T => (0x54, "T"),
+            Key::U => (0x55, "U"),
+            Key::V => (0x56, "V"),
+            Key::W => (0x57, "W"),
+            Key::X => (0x58, "X"),
+            Key::Y => (0x59, "Y"),
+            Key::Z => (0x5a, "Z"),
 
             Key::F1 => (winuser::VK_F1, "F1"),
             Key::F2 => (winuser::VK_F2, "F2"),
@@ -1206,12 +1205,12 @@ impl Menu {
             Key::Right => (winuser::VK_RIGHT, "Right"),
             Key::Up => (winuser::VK_UP, "Up"),
 
-            Key::Backslash => (winuser::VK_OEM_102, "Backslash"),
+            Key::Backslash => (winuser::VK_OEM_102, "\\"),
             Key::Comma => (winuser::VK_OEM_COMMA, ","),
             Key::Minus => (winuser::VK_OEM_MINUS, "-"),
             Key::Period => (winuser::VK_OEM_PERIOD, "."),
 
-            Key::Backspace => (winuser::VK_BACK, "Back"),
+            Key::Backspace => (winuser::VK_BACK, "Backspace"),
             Key::Delete => (winuser::VK_DELETE, "Delete"),
             Key::End => (winuser::VK_END, "End"),
             Key::Enter => (winuser::VK_RETURN, "Enter"),
@@ -1230,12 +1229,12 @@ impl Menu {
             Key::Tab => (winuser::VK_TAB, "Tab"),
             Key::NumLock => (winuser::VK_NUMLOCK, "NumLock"),
             Key::CapsLock => (winuser::VK_CAPITAL, "CapsLock"),
-            Key::ScrollLock => (winuser::VK_SCROLL, "Scroll"),
+            Key::ScrollLock => (winuser::VK_SCROLL, "ScrollLock"),
 
             Key::LeftShift => (winuser::VK_LSHIFT, "LeftShift"),
             Key::RightShift => (winuser::VK_RSHIFT, "RightShift"),
-            Key::LeftCtrl => (winuser::VK_CONTROL, "Ctrl"),
-            Key::RightCtrl => (winuser::VK_CONTROL, "Ctrl"),
+            Key::LeftCtrl => (winuser::VK_LCONTROL, "LeftCtrl"),
+            Key::RightCtrl => (winuser::VK_LCONTROL, "RightCtrl"),
 
             Key::NumPad0 => (winuser::VK_NUMPAD0, "NumPad0"),
             Key::NumPad1 => (winuser::VK_NUMPAD1, "NumPad1"),
@@ -1248,8 +1247,8 @@ impl Menu {
             Key::NumPad8 => (winuser::VK_NUMPAD8, "NumPad8"),
             Key::NumPad9 => (winuser::VK_NUMPAD9, "NumPad9"),
 
-            Key::LeftAlt => (winuser::VK_MENU, "Alt"),
-            Key::RightAlt => (winuser::VK_MENU, "Alt"),
+            Key::LeftAlt => (winuser::VK_LMENU, "LeftAlt"),
+            Key::RightAlt => (winuser::VK_RMENU, "RightAlt"),
 
             Key::LeftSuper => (winuser::VK_LWIN, "LeftWin"),
             Key::RightSuper => (winuser::VK_RWIN, "RightWin"),
@@ -1277,20 +1276,20 @@ impl Menu {
 
         name.push('\t');
 
-        if (menu_item.modifier & MENU_KEY_WIN) == MENU_KEY_WIN {
-            name.push_str("Win-");
+        if menu_item.modifiers.logo() {
+            name.push_str("Win+");
         }
 
-        if (menu_item.modifier & MENU_KEY_SHIFT) == MENU_KEY_SHIFT {
-            name.push_str("Shift-");
+        if menu_item.modifiers.ctrl() {
+            name.push_str("Ctrl+");
         }
 
-        if (menu_item.modifier & MENU_KEY_CTRL) == MENU_KEY_CTRL {
-            name.push_str("Ctrl-");
+        if menu_item.modifiers.shift() {
+            name.push_str("Shift+");
         }
 
-        if (menu_item.modifier & MENU_KEY_ALT) == MENU_KEY_ALT {
-            name.push_str("Alt-");
+        if menu_item.modifiers.alt() {
+            name.push_str("Alt+");
         }
 
         name.push_str(key_name);
@@ -1314,15 +1313,15 @@ impl Menu {
     fn get_virt_key(menu_item: &MenuItem, key: raw::c_int) -> u32 {
         let mut virt = Self::is_key_virtual_range(key);
 
-        if (menu_item.modifier & MENU_KEY_ALT) == MENU_KEY_ALT {
+        if menu_item.modifiers.alt() {
             virt |= 0x10;
         }
 
-        if (menu_item.modifier & MENU_KEY_CTRL) == MENU_KEY_CTRL {
+        if menu_item.modifiers.ctrl() {
             virt |= 0x8;
         }
 
-        if (menu_item.modifier & MENU_KEY_SHIFT) == MENU_KEY_SHIFT {
+        if menu_item.modifiers.shift() {
             virt |= 0x4;
         }
 

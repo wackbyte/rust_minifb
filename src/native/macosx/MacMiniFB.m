@@ -730,11 +730,10 @@ static NSString* convert_key_code_to_string(int key)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const uint32_t MENU_KEY_COMMAND = 1;
-const uint32_t MENU_KEY_WIN = 2;
-const uint32_t MENU_KEY_SHIFT= 4;
-const uint32_t MENU_KEY_CTRL = 8;
-const uint32_t MENU_KEY_ALT = 16;
+const uint8_t MODIFIERS_SHIFT = 0b0001;
+const uint8_t MODIFIERS_CTRL = 0b0010;
+const uint8_t MODIFIERS_ALT = 0b0100;
+const uint8_t MODIFIERS_LOGO = 0b1000;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -752,7 +751,7 @@ uint64_t mfb_add_menu_item(
 	const char* item_name,
 	bool enabled,
 	uint32_t key,
-	uint32_t modfier)
+	uint32_t modifiers)
 {
 	NSMenu* menu = (NSMenu*)in_menu;
 
@@ -769,27 +768,17 @@ uint64_t mfb_add_menu_item(
 		NSMenuItem* newItem = [[NSMenuItem alloc] initWithTitle:name action:@selector(onMenuPress:) keyEquivalent:@""];
 		[newItem setTag:menu_id];
 
-		// This code may look a bit weird but is here for a reason:
-		//
-		// In order to make it easier to bulid cross-platform apps Ctrl is often used as
-		// default modifier on Windows/Nix* while it's Command on Mac. Now we when Ctrl
-		// is set we default to Command on Mac for that reason but if Command AND Ctrl is
-		// set we allow both Ctrl and Command to be used but then it's up to the developer
-		// to deal with diffrent shortcuts depending on OS.
-		//
-
-		if ((modfier & MENU_KEY_CTRL)) {
-			mask |= NSEventModifierFlagCommand;
-		}
-		if ((modfier & MENU_KEY_CTRL) &&
-		    (modfier & MENU_KEY_COMMAND)) {
-			mask |= NSEventModifierFlagControl;
-		}
-		if (modfier & MENU_KEY_SHIFT) {
+		if (modifiers & MODIFIERS_SHIFT) {
 			mask |= NSEventModifierFlagShift;
 		}
-		if (modfier & MENU_KEY_ALT) {
+		if (modifiers & MODIFIERS_CTRL) {
+			mask |= NSEventModifierFlagControl;
+		}
+		if (modifiers & MODIFIERS_ALT) {
 			mask |= NSEventModifierFlagOption;
+		}
+		if (modifiers & MODIFIERS_LOGO) {
+			mask |= NSEventModifierFlagCommand;
 		}
 
 		switch (key) {

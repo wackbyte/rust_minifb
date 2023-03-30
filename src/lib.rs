@@ -193,8 +193,8 @@ pub struct WindowOptions {
     pub topmost: bool,
     /// Specifies whether or not the window is allowed to draw transparent pixels (default: false)
     /// Requires borderless to be 'true'
-    /// TODO: Currently not implemented on OSX.
-    /// TODO: Make it work without none option on windows.
+    // TODO: Currently not implemented on OSX.
+    // TODO: Make it work without none option on windows.
     pub transparency: bool,
     /// Required for transparency on windows.
     /// Should be mutually exclusive to resize, automatically assumes borderless.

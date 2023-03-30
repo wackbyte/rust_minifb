@@ -2,7 +2,7 @@ use crate::buffer_helper;
 use crate::key_handler::KeyHandler;
 use crate::mouse_handler;
 use crate::rate::UpdateRate;
-use crate::{CursorStyle, MenuHandle, UnixMenu};
+use crate::{CursorStyle, MenuHandle, PosixMenu};
 use crate::{Error, Result};
 use crate::{
     InputCallback, Key, KeyRepeat, MouseButton, MouseMode, Scale, ScaleMode, WindowOptions,
@@ -499,7 +499,7 @@ pub struct Window {
 
     update_rate: UpdateRate,
     menu_counter: MenuHandle,
-    menus: Vec<UnixMenu>,
+    menus: Vec<PosixMenu>,
     input: WaylandInput,
     resizable: bool,
     // Temporary buffer
@@ -735,7 +735,7 @@ impl Window {
         handle
     }
 
-    pub fn get_posix_menus(&self) -> Option<&Vec<UnixMenu>> {
+    pub fn get_posix_menus(&self) -> Option<&Vec<PosixMenu>> {
         //FIXME
         unimplemented!()
     }

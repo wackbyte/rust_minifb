@@ -9,7 +9,7 @@ use x11_dl::xlib;
 
 use crate::error::Error;
 use crate::Result;
-use crate::{CursorStyle, MenuHandle, UnixMenu};
+use crate::{CursorStyle, MenuHandle, PosixMenu};
 
 use std::convert::TryFrom;
 use std::ffi::{c_void, CStr, CString};
@@ -327,7 +327,7 @@ pub struct Window {
     key_handler: KeyHandler,
     update_rate: UpdateRate,
     menu_counter: MenuHandle,
-    menus: Vec<UnixMenu>,
+    menus: Vec<PosixMenu>,
 }
 
 unsafe impl raw_window_handle::HasRawWindowHandle for Window {
@@ -902,7 +902,7 @@ impl Window {
         handle
     }
 
-    pub fn get_posix_menus(&self) -> Option<&Vec<UnixMenu>> {
+    pub fn get_posix_menus(&self) -> Option<&Vec<PosixMenu>> {
         Some(&self.menus)
     }
 

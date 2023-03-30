@@ -13,7 +13,7 @@ use crate::InputCallback;
 use crate::Result;
 use crate::{CursorStyle, MouseButton, MouseMode};
 use crate::{Key, KeyRepeat};
-use crate::{MenuHandle, MenuItem, MenuItemHandle, UnixMenu, UnixMenuItem};
+use crate::{MenuHandle, MenuItem, MenuItemHandle, PosixMenu, PosixMenuItem};
 use crate::{Scale, WindowOptions};
 use core;
 use keycodes::event_to_key;
@@ -46,7 +46,7 @@ pub struct Window {
     mouse_state: Rc<MouseState>,
     key_handler: Rc<RefCell<KeyHandler>>,
     menu_counter: MenuHandle,
-    menus: Vec<UnixMenu>,
+    menus: Vec<PosixMenu>,
 }
 
 impl Window {
@@ -385,13 +385,13 @@ impl Window {
 }
 
 pub struct Menu {
-    pub internal: UnixMenu,
+    pub internal: PosixMenu,
 }
 
 impl Menu {
     pub fn new(name: &str) -> Result<Menu> {
         Ok(Menu {
-            internal: UnixMenu {
+            internal: PosixMenu {
                 handle: MenuHandle(0),
                 item_counter: MenuItemHandle(0),
                 name: name.to_owned(),
@@ -410,7 +410,7 @@ impl Menu {
 
     pub fn add_menu_item(&mut self, item: &MenuItem) -> MenuItemHandle {
         let item_handle = self.next_item_handle();
-        self.internal.items.push(UnixMenuItem {
+        self.internal.items.push(PosixMenuItem {
             sub_menu: None,
             handle: self.internal.item_counter,
             id: item.id,

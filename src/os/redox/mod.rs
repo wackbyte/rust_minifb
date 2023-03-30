@@ -11,7 +11,7 @@ use crate::InputCallback;
 use crate::Result;
 use crate::{CursorStyle, MouseButton, MouseMode};
 use crate::{Key, KeyRepeat};
-use crate::{MenuHandle, MenuItem, MenuItemHandle, UnixMenu, UnixMenuItem};
+use crate::{MenuHandle, MenuItem, MenuItemHandle, PosixMenu, PosixMenuItem};
 use crate::{Scale, WindowOptions};
 
 use orbclient::Renderer;
@@ -31,7 +31,7 @@ pub struct Window {
     window_scale: usize,
     key_handler: KeyHandler,
     menu_counter: MenuHandle,
-    menus: Vec<UnixMenu>,
+    menus: Vec<PosixMenu>,
 }
 
 impl Window {
@@ -399,7 +399,7 @@ impl Window {
         handle
     }
 
-    pub fn get_posix_menus(&self) -> Option<&Vec<UnixMenu>> {
+    pub fn get_posix_menus(&self) -> Option<&Vec<PosixMenu>> {
         Some(&self.menus)
     }
 
@@ -413,13 +413,13 @@ impl Window {
 }
 
 pub struct Menu {
-    pub internal: UnixMenu,
+    pub internal: PosixMenu,
 }
 
 impl Menu {
     pub fn new(name: &str) -> Result<Menu> {
         Ok(Menu {
-            internal: UnixMenu {
+            internal: PosixMenu {
                 handle: MenuHandle(0),
                 item_counter: MenuItemHandle(0),
                 name: name.to_owned(),
@@ -430,7 +430,7 @@ impl Menu {
 
     pub fn add_sub_menu(&mut self, name: &str, sub_menu: &Menu) {
         let handle = self.next_item_handle();
-        self.internal.items.push(UnixMenuItem {
+        self.internal.items.push(PosixMenuItem {
             label: name.to_owned(),
             handle,
             sub_menu: Some(Box::new(sub_menu.internal.clone())),
@@ -449,7 +449,7 @@ impl Menu {
 
     pub fn add_menu_item(&mut self, item: &MenuItem) -> MenuItemHandle {
         let item_handle = self.next_item_handle();
-        self.internal.items.push(UnixMenuItem {
+        self.internal.items.push(PosixMenuItem {
             sub_menu: None,
             handle: self.internal.item_counter,
             id: item.id,

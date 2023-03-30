@@ -1,14 +1,14 @@
 use crate::Result;
-use crate::{Key, MenuHandle, MenuItem, MenuItemHandle, UnixMenu, UnixMenuItem};
+use crate::{Key, MenuHandle, MenuItem, MenuItemHandle, PosixMenu, PosixMenuItem};
 
 pub struct Menu {
-    pub internal: UnixMenu,
+    pub internal: PosixMenu,
 }
 
 impl Menu {
     pub fn new(name: &str) -> Result<Menu> {
         Ok(Menu {
-            internal: UnixMenu {
+            internal: PosixMenu {
                 handle: MenuHandle(0),
                 item_counter: MenuItemHandle(0),
                 name: name.to_owned(),
@@ -19,7 +19,7 @@ impl Menu {
 
     pub fn add_sub_menu(&mut self, name: &str, sub_menu: &Menu) {
         let handle = self.next_item_handle();
-        self.internal.items.push(UnixMenuItem {
+        self.internal.items.push(PosixMenuItem {
             label: name.to_owned(),
             handle,
             sub_menu: Some(Box::new(sub_menu.internal.clone())),
@@ -38,7 +38,7 @@ impl Menu {
 
     pub fn add_menu_item(&mut self, item: &MenuItem) -> MenuItemHandle {
         let item_handle = self.next_item_handle();
-        self.internal.items.push(UnixMenuItem {
+        self.internal.items.push(PosixMenuItem {
             sub_menu: None,
             handle: self.internal.item_counter,
             id: item.id,

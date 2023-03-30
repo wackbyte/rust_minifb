@@ -20,7 +20,7 @@ mod xkb_keysyms;
 
 use crate::icon::Icon;
 use crate::Result;
-use crate::{CursorStyle, MenuHandle, UnixMenu};
+use crate::{CursorStyle, MenuHandle, PosixMenu};
 use crate::{InputCallback, Key, KeyRepeat, MouseButton, MouseMode, WindowOptions};
 pub use common::Menu;
 
@@ -339,7 +339,7 @@ impl Window {
         }
     }
 
-    pub fn get_posix_menus(&self) -> Option<&Vec<UnixMenu>> {
+    pub fn get_posix_menus(&self) -> Option<&Vec<PosixMenu>> {
         match *self {
             #[cfg(feature = "x11")]
             Window::X11(ref w) => w.get_posix_menus(),

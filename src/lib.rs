@@ -759,7 +759,7 @@ impl Window {
 
     /// Get POSIX menus. Will only return menus on POSIX-like OSes like Linux or BSD
     /// otherwise ```None```
-    pub fn get_posix_menus(&self) -> Option<&Vec<UnixMenu>> {
+    pub fn get_posix_menus(&self) -> Option<&Vec<PosixMenu>> {
         #[cfg(any(target_os = "macos", target_os = "windows", target_arch = "wasm32"))]
         {
             None
@@ -778,10 +778,12 @@ impl Window {
         }
     }
 
+    /// Use [`get_posix_menus`](Self::get_posix_menus) instead.
     #[deprecated(
         since = "0.17.0",
         note = "`get_unix_menus` will be removed in 1.0.0, use `get_posix_menus` instead"
     )]
+    #[allow(deprecated)]
     pub fn get_unix_menus(&self) -> Option<&Vec<UnixMenu>> {
         self.get_posix_menus()
     }
@@ -806,17 +808,31 @@ pub const MENU_KEY_ALT: usize = 16;
 
 const MENU_ID_SEPARATOR: usize = 0xffffffff;
 
+/// Use [`PosixMenu`] instead.
+#[deprecated(
+    since = "0.25.0",
+    note = "`UnixMenuItem` will be removed in 1.0.0, use `PosixMenu` instead"
+)]
+pub type UnixMenu = PosixMenu;
+
+/// Use [`PosixMenuItem`] instead.
+#[deprecated(
+    since = "0.25.0",
+    note = "`UnixMenuItem` will be removed in 1.0.0, use `PosixMenuItem` instead"
+)]
+pub type UnixMenuItem = PosixMenuItem;
+
 /// Used on POSIX systems (Linux, FreeBSD, etc) as menus aren't supported in a native way there.
 /// This structure can be used by calling [#get_posix_menus] on Window.
 ///
 /// In version 1.0.0, this struct will be renamed to PosixMenu, but it remains UnixMenu for backwards compatibility
 /// reasons.
 #[derive(Debug, Clone)]
-pub struct UnixMenu {
+pub struct PosixMenu {
     /// Name of the menu
     pub name: String,
     /// All items of the menu.
-    pub items: Vec<UnixMenuItem>,
+    pub items: Vec<PosixMenuItem>,
     #[doc(hidden)]
     pub handle: MenuHandle,
     #[doc(hidden)]
@@ -826,9 +842,9 @@ pub struct UnixMenu {
 /// Used on POSIX systems (Linux, FreeBSD, etc) as menus aren't supported in a native way there.
 /// This structure holds info for each item in a #UnixMenu
 #[derive(Debug, Clone)]
-pub struct UnixMenuItem {
+pub struct PosixMenuItem {
     /// Set to a menu if there is a Item is a sub_menu otherwise None
-    pub sub_menu: Option<Box<UnixMenu>>,
+    pub sub_menu: Option<Box<PosixMenu>>,
     /// Handle of the MenuItem
     pub handle: MenuItemHandle,
     /// Id of the item (set by the user from the outside and should be reported back when pressed)
